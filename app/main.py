@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1.endpoints.url import router
+from app.api.endpoints.url import url_manager_router
+from app.api.endpoints.url_statistics import stats_router
+from app.core.config import settings
 
 app = FastAPI(
     title='URL-Shortener',
@@ -17,7 +19,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router)
+app.include_router(url_manager_router)
+app.include_router(stats_router)
 
 # Health Check
 @app.get("/health", tags=["Health"])
@@ -25,7 +28,7 @@ async def health_check():
     """Health check endpoint."""
     return {
         "status": "healthy",
-        # "version": settings.VERSION,
+        "version": settings.VERSION,
         "app": 'URL-Shortener'
     }
 
@@ -35,8 +38,8 @@ async def health_check():
 async def root():
     """Root endpoint with API information."""
     return {
-        "message": f"Welcome to URL Shortener",
-        # "version": settings.VERSION,
+        "message": f"Welcome to {settings.APP_NAME}",
+        "version": settings.VERSION,
         "docs": "/docs",
         "redoc": "/redoc"
     }
@@ -49,6 +52,6 @@ if __name__ == "__main__":
         "app.main:app",
         host="0.0.0.0",
         port=8000,
-        # reload=settings.DEBUG
+        reload=settings.DEBUG
     )
 

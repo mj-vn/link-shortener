@@ -69,3 +69,44 @@ async def test_redirect_not_found(client):
     response = await client.get("/NONEXIST", follow_redirects=False)
     assert response.status_code == 404
 
+
+@pytest.mark.asyncio
+async def test_get_url_stats(client, db_session):
+    """
+    - Create a URL with existing clicks.
+    - Call GET /stats/{short_code}.
+    - Assert correct JSON response.
+    - Test handling of non-existent code.
+    """
+
+    url_id = 9999
+    initial_clicks = 50
+    url_obj = URLItem(
+        short_code=url_id,
+        original_url="https://python.org",
+        clicked_count=initial_clicks
+    )
+    db_session.add(url_obj)
+    await db_session.commit()
+
+    short_code = encode_base62(url_id)
+
+    response = await client.get(f"/stats/{short_code}")
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["short_code"] == short_code
+    assert data["original_url"] == "https://python.org"
+    assert data["clicked_count"] == 50
+    assert "created_at" in data
+
+
+@pytest.mark.asyncio
+async def test_get_stats_not_found(client):
+    response = await client.get("/stats/ZZZZZZZZ")
+    assert response.status_code == 404
+
+    response = await client.get("/stats/invalid-char-?")
+    assert response.status_code == 404
+
