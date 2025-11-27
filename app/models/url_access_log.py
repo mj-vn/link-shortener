@@ -1,7 +1,6 @@
 from sqlalchemy import Column, String, Integer, BigInteger, ForeignKey
 from sqlalchemy.orm import relationship, Mapped
-from app.db.session import Base
-from app.models.base_class import mapped_column
+from app.models.base_class import mapped_column, Base
 from app.models.mixins import TimestampMixin
 
 
