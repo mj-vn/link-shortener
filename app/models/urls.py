@@ -1,5 +1,4 @@
-from app.db.session import Base
-from app.models.base_class import mapped_column
+from app.models.base_class import mapped_column, Base
 from app.models.mixins import ModifiedMixin
 
 from sqlalchemy import Integer, ForeignKey, Sequence, BigInteger

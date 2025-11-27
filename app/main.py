@@ -26,17 +26,6 @@ app.add_middleware(
 app.include_router(url_manager_router)
 app.include_router(stats_router)
 
-# Health Check
-@app.get("/health", tags=["Health"])
-async def health_check():
-    """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "version": settings.VERSION,
-        "app": 'URL-Shortener'
-    }
-
-
 # Root Endpoint
 @app.get("/", tags=["Root"])
 async def root():

@@ -9,8 +9,8 @@ from httpx import AsyncClient, ASGITransport
 
 from app.api.deps import get_db
 from app.main import app as fastapi_app
-from app.db.session import Base
 from app.core import decorators
+from app.models.base_class import Base
 
 TEST_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/url_shortener_test"
 
