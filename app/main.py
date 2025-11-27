@@ -4,6 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.endpoints.url import url_manager_router
 from app.api.endpoints.url_statistics import stats_router
 from app.core.config import settings
+from app.core.logging import configure_logger
+
+
+configure_logger()
 
 app = FastAPI(
     title='URL-Shortener',
