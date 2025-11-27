@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     DB_MAX_OVERFLOW: int = 40
     DB_POOL_TIMEOUT: int = 30
     DB_POOL_RECYCLE: int = 3600
+    DB_POOL_PRE_PING: bool = True
 
     # Security
     SECRET_KEY: str = "your-secret-key-here-change-in-production"

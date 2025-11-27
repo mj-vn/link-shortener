@@ -1,5 +1,7 @@
 import functools
+import asyncio
 from fastapi import Request
+from app.core.logging import logger
 from app.db.session import AsyncSessionLocal
 from app.repositories.url import URLRepository
 from app.utils.encoding import decode_base62
@@ -10,28 +12,45 @@ repo = URLRepository()
 def log_analytics(func):
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
-        response = await func(*args, **kwargs)
-
         short_code = kwargs.get('short_code')
         request: Request = kwargs.get('request')
 
-        if response.status_code == 307 and short_code and request:
-            try:
-                url_id = decode_base62(short_code)
-                ip = request.client.host
-                ua = request.headers.get("user-agent")
+        log = logger.bind(
+            short_code=short_code,
+            ip=request.client.host if request else "unknown",
+            user_agent=request.headers.get("user-agent") if request else "unknown"
+        )
 
-                import asyncio
-                asyncio.create_task(_log_background(url_id, ip, ua))
-            except ValueError:
-                pass  # Invalid code, don't log
+        try:
+            response = await func(*args, **kwargs)
 
-        return response
+            if response.status_code == 307:
+                log.info(
+                    "url_redirect_success",
+                    status_code=307
+                )
+
+                try:
+                    url_id = decode_base62(short_code)
+                    asyncio.create_task(_log_background(url_id, request.client.host,
+                                                        request.headers.get(
+                                                            "user-agent")))
+                except ValueError:
+                    log.warning("invalid_short_code_format", code=short_code)
+
+            return response
+
+        except Exception as e:
+            log.error("url_redirect_failed", error=str(e))
+            raise e
 
     return wrapper
 
 
 async def _log_background(url_id: int, ip: str, ua: str):
-    async with AsyncSessionLocal() as session:
-        await repo.log_access(session, url_id, ip, ua)
-
+    try:
+        async with AsyncSessionLocal() as session:
+            await repo.log_access(session, url_id, ip, ua)
+    except Exception as e:
+        # Even background tasks should be logged!
+        logger.error("db_log_write_failed", error=str(e), url_id=url_id)
