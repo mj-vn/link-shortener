@@ -16,7 +16,7 @@ class URLRepository:
         return await db.get(URLItem, url_id)
 
     async def increment_clicks(self, db: AsyncSession, url_id: int):
-        stmt = update(URLItem).where(URLItem.id == url_id).values(clicks=URLItem.clicks + 1)
+        stmt = update(URLItem).where(URLItem.short_code == url_id).values(clicked_count=URLItem.clicked_count + 1)
         await db.execute(stmt)
 
     async def log_access(self, db: AsyncSession, url_id: int, ip: str, ua: str):

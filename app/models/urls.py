@@ -16,3 +16,5 @@ class URLItem(ModifiedMixin, Base):
                                             server_default=url_id_seq.next_value())
     original_url: Mapped[str]
     clicked_count: Mapped[int] = mapped_column(Integer, default=0)
+
+    logs = relationship("URLAccessLog", back_populates="url")
