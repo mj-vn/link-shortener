@@ -20,14 +20,7 @@ async def shorten_url(item: URLCreate, db: AsyncSession = Depends(get_db)):
     """
     Creates a shortened URL.
     """
-    code = await service.shorten_url(db, str(item.url))
-
-    return {
-        "short_code": code,
-        "original_url": str(item.url),
-        "clicks": 0,
-        "created_at": datetime.now()
-    }
+    return await service.shorten_url(db, str(item.url))
 
 
 @url_manager_router.get("/{short_code}")

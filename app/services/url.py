@@ -9,12 +9,13 @@ class URLService:
     def __init__(self):
         self.repo = URLRepository()
 
-    async def shorten_url(self, db: AsyncSession, original_url: str) -> str:
+    async def shorten_url(self, db: AsyncSession, original_url: str) -> URLItem:
         new_url = await self.repo.create(db, original_url)
         await db.commit()
 
-        short_code = encode_base62(new_url.short_code)
-        return short_code
+        await db.refresh(new_url)
+
+        return new_url
 
     async def get_original_url(self, db: AsyncSession, short_code: str) -> str | None:
         try:
