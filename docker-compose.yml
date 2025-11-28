@@ -1,7 +1,7 @@
 version: '3.9'
 
 services:
-  # PostgreSQL Database
+  # PostgreSQL Database (Production)
   db:
     image: postgres:16-alpine
     container_name: url_shortener_db
@@ -15,7 +15,28 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-#      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - url_shortener_network
+
+  # PostgreSQL Database (Testing)
+  test_db:
+    image: postgres:16-alpine
+    container_name: url_shortener_test_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: url_shortener_test
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+    ports:
+      - "5434:5432"
+    volumes:
+      - test_postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -53,8 +74,31 @@ services:
       sh -c "alembic upgrade head &&
              uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
+  # Test Service
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: url_shortener_tests
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@test_db:5432/url_shortener_test
+    volumes:
+      - ./app:/app/app
+      - ./tests:/app/tests
+      - ./logs:/app/logs
+    depends_on:
+      test_db:
+        condition: service_healthy
+    networks:
+      - url_shortener_network
+    command: pytest tests/ -v --tb=short
+    profiles:
+      - test
+
 volumes:
   postgres_data:
+    driver: local
+  test_postgres_data:
     driver: local
 
 networks:
