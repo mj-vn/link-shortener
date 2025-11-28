@@ -1,12 +1,17 @@
 
 # URL Shortener Service
 
-A scalable, asynchronous URL shortening service built with **FastAPI**, **PostgreSQL**, and **Docker**. Designed with performance, data integrity, and clean architecture in mind.
+As always like any other interview assessments I made difficult decisions between avoiding over engineering and expose my skills and capabilities.
+In the below I try to just mention some decisions and introduce what I have done and hope to have a deep and enjoyable conversation in next days.
+
+I am happy that I should answer scalability questions and issues and I survived from the comparing boundaries between over engineering and must dos.
+
+This is a scalable, asynchronous URL shortening service built with **FastAPI**, **PostgreSQL**, and **Docker**. Designed with performance, data integrity, and clean architecture in mind.
 
 ## Features
 
-*   **URL Shortening:** Converts long URLs into short, unique 7-character codes.
-*   **Redirects:** High-speed redirection (HTTP 307) to original URLs.
+*   **URL Shortening:** Converts long URLs into short, unique 8-character codes.
+*   **Redirects:** Redirection (HTTP 307) to original URLs.
 *   **Analytics:** Tracks click counts, user IP, and User-Agent for every access.
 *   **Background Processing:** Non-blocking logging of analytics to ensure redirect speed remains unaffected.
 *   **Structured Logging:** JSON-formatted logs suitable for Observability stacks (ELK/Datadog).
@@ -16,8 +21,11 @@ A scalable, asynchronous URL shortening service built with **FastAPI**, **Postgr
 
 ## Architecture & Design Decisions
 
+* **Contains a little back of envelop calculation!**
+
 ### 1. ID Generation Strategy: Base62 Encoding
 We utilize a **Database Sequence** combined with **Base62 Encoding** to generate short codes.
+To avoiding **over engineering** this way may be the best solution to expose a little system design skills and I ignored **Predictability**.
 
 #### **Why Base62?**
 Base62 uses the characters `[a-z]`, `[A-Z]`, and `[0-9]`.
@@ -35,10 +43,11 @@ Even if we generate **1,000 URLs per second**, this system will run for **~111 y
 *   **MD5/SHA Hashing:** Produces long strings. Taking just the first 7 characters results in high collision probability (Birthday Paradox).
 *   **UUID:** Too long (36 characters) for a URL shortener.
 
+* **Note:** I ignored RandomStrings and Hashing to **reducing DB round-trips**, because our system is a **read heavy** and we do not have consideration about predictability in assessment doc.  
 ---
 
 ### 2. Database Choice: PostgreSQL
-We chose PostgreSQL over NoSQL (MongoDB) or Key-Value stores (Redis) as the primary store for the following reasons:
+I chose PostgreSQL over NoSQL (MongoDB) or Key-Value stores (Redis) as the primary store for the following reasons:
 
 *   **Atomic Sequences:** Postgres `SEQUENCE` objects are highly optimized and thread-safe. They guarantee unique Integer IDs even under heavy concurrent load, which is the backbone of our Base62 strategy.
 *   **ACID Compliance:** Essential for the `clicked_count` feature. We use atomic row updates to ensure that if two users click simultaneously, the counter increments correctly by 2, not 1.
@@ -47,15 +56,21 @@ We chose PostgreSQL over NoSQL (MongoDB) or Key-Value stores (Redis) as the prim
 *Why not Redis?*
 While Redis is faster, it is an in-memory store. If the server crashes, we risk losing data (unless strict persistence is configured, which slows it down). We reserve Redis for a future caching layer (e.g., caching hot redirects) rather than the primary source of truth.
 
+
+### 4. Software Architecture: Repository Pattern
+The repository pattern **decouples** business logic from data access, making it straightforward to modify database queries or 
+even swap out the underlying database without touching service layer code. API endpoints, services, repositories, and models each live in their own dedicated directories. When adding new features, developers know exactly where each component belongs, reducing cognitive overhead and onboarding time.
+
+
 ---
 
-## Tech Stack
+## Stack
 
-*   **Language:** Python 3.12
+*   **Language:** Python 3
 *   **Framework:** FastAPI
-*   **Database:** PostgreSQL 15
+*   **Database:** PostgreSQL
 *   **ORM:** SQLAlchemy (Async) + Alembic (Migrations)
-*   **Validation:** Pydantic V2
+*   **Validation:** Pydantic
 *   **Testing:** Pytest + AsyncPG
 
 ---
@@ -66,7 +81,6 @@ While Redis is faster, it is an in-memory store. If the server crashes, we risk 
 *   Docker & Docker Compose
 
 ### Running the Application
-The project includes a `Makefile` or standard Docker commands for ease of use.
 
 1.  **Clone the repository:**
     ```bash
