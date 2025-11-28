@@ -84,5 +84,14 @@ The project includes a `Makefile` or standard Docker commands for ease of use.
     *   **Swagger UI:** [http://localhost:8000/docs](http://localhost:8000/docs)
     *   **Redoc:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
 
+### Running the Tests
+
+All the APIs of the project has test and you can run tests and make sure about they are work with:
+```bash
+
+docker compose --profile test run --rm tests
+
+```
+
 ---
 
