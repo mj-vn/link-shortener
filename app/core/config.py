@@ -13,9 +13,6 @@ class Settings(BaseSettings):
     TESTING: bool = False
     ENVIRONMENT: str = "production"
 
-    # API
-    API_V1_PREFIX: str = "/api/v1"
-
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@db:5432/url_shortener"
     ASYNC_DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@db:5432/url_shortener"
@@ -25,30 +22,12 @@ class Settings(BaseSettings):
     DB_POOL_RECYCLE: int = 3600
     DB_POOL_PRE_PING: bool = True
 
-    # Security
-    SECRET_KEY: str = "your-secret-key-here-change-in-production"
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-
     # CORS
     CORS_ORIGINS: list = ["http://localhost:3000", "http://localhost:8080"]
-
-    # Pagination
-    DEFAULT_PAGE_SIZE: int = 50
-    MAX_PAGE_SIZE: int = 1000
-
-    # Rate Limiting
-    RATE_LIMIT_ENABLED: bool = True
-    RATE_LIMIT_PER_MINUTE: int = 60
 
     # Logging
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "text"  # or "json"
-
-    # Redis (for caching)
-    REDIS_URL: Optional[str] = None
-    REDIS_CACHE_TTL: int = 300  # 5 minutes
 
     model_config = SettingsConfigDict(
         env_file=".env",
