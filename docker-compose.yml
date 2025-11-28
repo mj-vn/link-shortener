@@ -34,7 +34,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=- DATABASE_URL=postgresql://postgres:postgres@db:5433/url_shortener
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/url_shortener
 #      - DEBUG=True
 #      - ENVIRONMENT=development
     volumes:
