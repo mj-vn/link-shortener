@@ -15,9 +15,9 @@ async def test_create_short_url(client):
     assert response.status_code == 201
     data = response.json()
     # Add '/' because of pydantic HttpURL
-    assert data["original_url"] == "https://www.google.com/"
-    assert "short_code" in data
-    assert len(data["short_code"]) == 8
+    assert data["originalUrl"] == "https://www.google.com/"
+    assert "shortCode" in data
+    assert len(data["shortCode"]) == 8
 
 
 @pytest.mark.asyncio
@@ -96,10 +96,10 @@ async def test_get_url_stats(client, db_session):
     assert response.status_code == 200
     data = response.json()
 
-    assert data["short_code"] == short_code
-    assert data["original_url"] == "https://python.org"
-    assert data["clicked_count"] == 50
-    assert "created_at" in data
+    assert data["shortCode"] == short_code
+    assert data["originalUrl"] == "https://python.org"
+    assert data["clickedCount"] == 50
+    assert "createdAt" in data
 
 
 @pytest.mark.asyncio
