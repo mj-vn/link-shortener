@@ -33,14 +33,14 @@ Base62 uses the characters `[a-z]`, `[A-Z]`, and `[0-9]`.
 *   **Deterministic:** $f(id) = code$. We do not need to store the string "code" in an indexed column (though we can for faster lookups). We can mathematically decode the string back to the Integer ID (`O(1)` complexity).
 
 #### **Capacity Calculation**
-With a 7-character limit, the number of unique combinations is $62^7$:
+With a 8-character limit, the number of unique combinations is $62^7$:
 $$62^7 \approx 3,521,614,606,208 \text{ (3.5 Trillion unique URLs)}$$
 
-Even if we generate **1,000 URLs per second**, this system will run for **~111 years** before running out of unique 7-character codes.
+Even if we generate **1,000 URLs per second**, this system will run for **~111 years** before running out of unique 8-character codes.
 
 #### **Alternatives Considered**
 *   **Random Strings:** Requires checking the database for collisions ("Is this code already taken?"). This adds a read operation before every write, slowing down the system as it fills up.
-*   **MD5/SHA Hashing:** Produces long strings. Taking just the first 7 characters results in high collision probability (Birthday Paradox).
+*   **MD5/SHA Hashing:** Produces long strings. Taking just the first 8 characters results in high collision probability (Birthday Paradox).
 *   **UUID:** Too long (36 characters) for a URL shortener.
 
 * **Note:** I ignored RandomStrings and Hashing to **reducing DB round-trips**, because our system is a **read heavy** and we do not have consideration about predictability in assessment doc.  
