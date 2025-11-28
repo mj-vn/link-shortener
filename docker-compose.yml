@@ -1,48 +1,106 @@
+version: '3.9'
+
 services:
+  # PostgreSQL Database (Production)
   db:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
+    container_name: url_shortener_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: url_shortener
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+    ports:
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=url_shortener
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
-#    ports:
-#      - "5432:5432" # ino avaz kon bezar roy 127.0.0.1
     networks:
-      - db_access
+      - url_shortener_network
 
-  web:
-    build: .
-    command: >
-      sh -c "alembic upgrade head && 
-             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+  # PostgreSQL Database (Testing)
+  test_db:
+    image: postgres:16-alpine
+    container_name: url_shortener_test_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: url_shortener_test
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+    ports:
+      - "5434:5432"
     volumes:
-      - .:/app
+      - test_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - url_shortener_network
+
+  # FastAPI Application
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: url_shortener_service
+    restart: unless-stopped
     ports:
       - "8000:8000"
-    networks:
-      - db_access
-      - public
-
-    env_file:
-      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/url_shortener
+    volumes:
+      - ./app:/app/app
+      - ./logs:/app/logs
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - url_shortener_network
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  # Test Service
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: url_shortener_tests
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@test_db:5432/url_shortener_test
+    volumes:
+      - ./app:/app/app
+      - ./tests:/app/tests
+      - ./logs:/app/logs
+    depends_on:
+      test_db:
+        condition: service_healthy
+    networks:
+      - url_shortener_network
+    command: pytest tests/ -v --tb=short
+    profiles:
+      - test
 
 volumes:
   postgres_data:
+    driver: local
+  test_postgres_data:
+    driver: local
 
 networks:
-  db_access:
-    external: true
-    name: db_access
-  public:
-    external: true
-    name: public
+  url_shortener_network:
+    driver: bridge

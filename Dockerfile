@@ -1,42 +1,54 @@
-# Builder
 FROM python:3.12-slim AS builder
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
-WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc libpq-dev && \
-    rm -rf /var/lib/apt/lists/*
+RUN python -m venv /opt/venv
+
+ENV PATH="/opt/venv/bin:$PATH"
 
 COPY requirements.txt .
-#RUN mkdir $HOME/.local/config/pip
-#COPY pip.conf $HOME/.local/config/pip/pip.conf
-RUN pip install --upgrade pip && \
-    pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
-# Runner
-FROM python:3.12-slim AS runner
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install -r requirements.txt
+
+
+FROM python:3.12-slim AS runtime
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/opt/venv/bin:$PATH" \
+    PYTHONPATH=/app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd -r appuser && \
+    useradd -r -g appuser -u 1000 -m -s /bin/bash appuser
 
 WORKDIR /app
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends libpq-dev && \
-    rm -rf /var/lib/apt/lists/*
+COPY --from=builder /opt/venv /opt/venv
 
-COPY --from=builder /app/wheels /wheels
-COPY --from=builder /app/requirements.txt .
+COPY --chown=appuser:appuser . .
 
-RUN pip install --no-cache /wheels/*
+RUN mkdir -p /app/logs && \
+    chown -R appuser:appuser /app
 
-COPY . .
+USER appuser
 
-# Security: Create a non-root user
-RUN addgroup --system app && adduser --system --group app
-USER app
-
+# Expose port
 EXPOSE 8000
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-
