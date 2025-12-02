@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import InvalidShortCodeException, URLNotFoundException
 from app.models import URLItem
 from app.repositories.url import URLRepository
 from app.utils.encoding import decode_base62
@@ -18,21 +19,21 @@ class URLService:
 
         return new_url
 
-    async def get_original_url(self, short_code: str) -> str | None:
+    async def get_url_details(self, short_code: str) -> str | None:
         try:
             url_id = decode_base62(short_code)
         except ValueError:
-            return None
+            raise InvalidShortCodeException()
 
         url_obj = await self.repo.get_by_id(self.db, url_id)
 
-        if url_obj:
-            # Handle the atomic increment here (or via decorator)
-            await self.repo.increment_clicks(self.db, url_id)
-            await self.db.commit()
-            return url_obj.original_url
+        if not url_obj:
+            raise URLNotFoundException(payload={"attempted_code": short_code})
 
-        return None
+        await self.repo.increment_clicks(self.db, url_id)
+        await self.db.commit()
+
+        return url_obj
 
     async def get_url_stats(self, short_code: str) -> URLItem | None:
         """
@@ -41,8 +42,11 @@ class URLService:
         try:
             url_id = decode_base62(short_code)
         except ValueError:
-            # Short code contains invalid characters
-            return None
+            raise InvalidShortCodeException(payload={"attempted_code": short_code})
 
-        return await self.repo.get_by_id(self.db, url_id)
+        stats_obj = await self.repo.get_by_id(self.db, url_id)
+        if not stats_obj:
+            raise URLNotFoundException(payload={"attempted_code": short_code})
+
+        return stats_obj
 

@@ -7,6 +7,8 @@ from asgi_correlation_id import CorrelationIdMiddleware
 from app.api.endpoints.url import url_manager_router
 from app.api.endpoints.url_statistics import stats_router
 from app.core.config import settings
+from app.core.errors import app_exception_handler
+from app.core.exceptions import AppBaseException
 from app.core.logging import configure_logger, logger
 from app.db.session import async_engine
 
@@ -37,6 +39,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Register Exception Handler
+app.add_exception_handler(AppBaseException, app_exception_handler)
 
 # To add unique UUID to every request log
 app.add_middleware(CorrelationIdMiddleware)
@@ -47,7 +51,9 @@ app.include_router(stats_router)
 
 
 # For k8s
-@app.get("/health", tags=["Health"])
+# (I had to use this not standard endpoint because
+# of assessment doc it has reserved for /{short_code})
+@app.get("/health/system_health", tags=["Health"])
 async def health_check():
     return {"status": "ok", "version": settings.VERSION}
 
