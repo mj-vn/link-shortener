@@ -14,23 +14,18 @@ from app.db.session import async_engine
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_logger()
-    logger.info("startup initiated", env=settings.ENVIRONMENT)
+    logger.info("startup.initiated", env=settings.ENVIRONMENT)
     yield
     await async_engine.dispose()
-    logger.info("shutdown complete")
+    logger.info("shutdown.complete")
 
-
-app = FastAPI(
-    title="URL-Shortener",
-    description="Url Shortener Service",
-)
 
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.VERSION,
     lifespan=lifespan,
     docs_url="/docs" if settings.DEBUG else None,
-    redoc_url="/docs",
+    redoc_url="/redoc",
 )
 
 # CORS Middleware
