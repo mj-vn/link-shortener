@@ -1,6 +1,8 @@
 import functools
 import asyncio
 from fastapi import Request
+from starlette import status
+
 from app.core.logging import logger
 from app.db.session import AsyncSessionLocal
 from app.repositories.url import URLRepository
@@ -11,7 +13,6 @@ def log_analytics(func):
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
         request: Request = kwargs.get("request")
-
         if not request:
             for arg in args:
                 if isinstance(arg, Request):
@@ -19,41 +20,32 @@ def log_analytics(func):
                     break
 
         short_code = kwargs.get("short_code")
+        client_ip = request.client.host if request and request.client else "unknown"
+        user_agent = request.headers.get("user-agent", "unknown") if request else "unknown"
 
-        log = logger.bind(
-            short_code=short_code,
-            ip=request.client.host if request else "unknown",
-            user_agent=request.headers.get(
-                "user-agent",
-                "unknown"
-            ) if request else "unknown"
-        )
+        response = await func(*args, **kwargs)
 
-        try:
-            response = await func(*args, **kwargs)
+        if response.status_code == status.HTTP_307_TEMPORARY_REDIRECT:
+            internal_id = getattr(request.state, "internal_id", None)
 
-            if response.status_code == 307:
-                log.info("url_redirect_success")
-
+            if internal_id is None:
                 try:
-                    url_id = decode_base62(short_code)
-
-                    asyncio.create_task(
-                        _log_background(
-                            url_id,
-                            request.client.host if request else "unknown",
-                            request.headers.get("user-agent",
-                                                "unknown") if request else "unknown"
-                        )
-                    )
+                    internal_id = decode_base62(short_code)
                 except ValueError:
-                    log.warning("invalid_short_code_format")
+                    return response
 
-            return response
+            logger.info(
+                "url_redirect.success",
+                short_code=short_code,
+                internal_id=internal_id,
+                ip=client_ip
+            )
 
-        except Exception as e:
-            log.error("url_redirect_failed", error=str(e))
-            raise e
+            asyncio.create_task(
+                _log_background(internal_id, client_ip, user_agent)
+            )
+
+        return response
 
     return wrapper
 

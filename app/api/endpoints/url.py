@@ -4,6 +4,7 @@ from starlette.requests import Request
 
 from app.api.dependencies import get_url_service
 from app.core.decorators import log_analytics
+from app.core.exceptions import URLNotFoundException
 from app.core.logging import logger
 from app.schemas import URLResponse, URLCreate
 from app.services.url import URLService
@@ -40,17 +41,12 @@ async def redirect_to_original(
         request: Request,
         url_service: URLService = Depends(get_url_service)
 ):
+    url_obj = await url_service.get_url_details(short_code)
 
-    original_url = await url_service.get_original_url(short_code)
-    if not original_url:
-        logger.warning("url_redirect.not_found", code=short_code)
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="URL not found"
-        )
+    request.state.internal_id = url_obj.short_code
 
     return RedirectResponse(
-        url=original_url,
+        url=url_obj.original_url,
         status_code=status.HTTP_307_TEMPORARY_REDIRECT
     )
 
