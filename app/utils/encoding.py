@@ -1,7 +1,8 @@
-ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+ALPHABET = "wJ5K2Xz0O1Yk7M3Zp4Q8L6N9RaAbBcCdDeEfGgHhIijlLmnoPqrSstTuvWx"
 BASE = len(ALPHABET)
 # Map char back to index for fast O(1) lookup
 ALPHABET_MAP = {char: index for index, char in enumerate(ALPHABET)}
+
 
 def encode_base62(id_num: int) -> str:
     """Converts Integer ID -> Base62 String"""
@@ -14,6 +15,7 @@ def encode_base62(id_num: int) -> str:
     arr.reverse()
     return "".join(arr)
 
+
 def decode_base62(short_code: str) -> int:
     """Converts Base62 String -> Integer ID"""
     id_num = 0
@@ -22,3 +24,4 @@ def decode_base62(short_code: str) -> int:
             raise ValueError("Invalid character in short code")
         id_num = id_num * BASE + ALPHABET_MAP[char]
     return id_num
+

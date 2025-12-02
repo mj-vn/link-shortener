@@ -7,6 +7,7 @@ from app.core.decorators import log_analytics
 from app.core.logging import logger
 from app.schemas import URLResponse, URLCreate
 from app.services.url import URLService
+from app.utils.encoding import encode_base62
 
 url_manager_router = APIRouter()
 
@@ -25,7 +26,8 @@ async def shorten_url(url_obj: URLCreate, url_service: URLService = Depends(get_
     logger.info(
         "url_shortened.success",
         original_url=str(url_obj.url),
-        short_code=result.short_code
+        short_code=encode_base62(result.short_code),
+        db_short_code=result.short_code
     )
 
     return result
