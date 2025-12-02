@@ -90,7 +90,7 @@ even swap out the underlying database without touching service layer code. API e
 
 2.  **Start Services:**
     ```bash
-    docker-compose up --build -d
+    docker compose up --build -d
     ```
     *This starts the PostgreSQL container and the FastAPI application. The app handles database migrations automatically on startup.*
 

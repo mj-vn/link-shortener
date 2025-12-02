@@ -1,5 +1,4 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
 
 
 class Settings(BaseSettings):
@@ -11,7 +10,7 @@ class Settings(BaseSettings):
     APP_VERSION: str = "0.0.0-dev"
     DEBUG: bool = True
     TESTING: bool = False
-    ENVIRONMENT: str = "production"
+    ENVIRONMENT: str = "staging"
 
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@db:5432/url_shortener"

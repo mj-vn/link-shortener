@@ -1,4 +1,4 @@
-from pydantic import BaseModel, HttpUrl
+from pydantic import HttpUrl
 from datetime import datetime
 
 from app.schemas.base_schema import ShortCodeField, CamelBaseModel

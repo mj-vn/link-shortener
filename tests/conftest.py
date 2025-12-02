@@ -6,7 +6,7 @@ from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from httpx import AsyncClient, ASGITransport
 
-from app.api.deps import get_db
+from app.api.dependencies import get_db
 from app.main import app as fastapi_app
 from app.core import decorators
 from app.core.config import settings

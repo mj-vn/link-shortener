@@ -8,8 +8,11 @@ class URLAccessLog(TimestampMixin, Base):
     __tablename__ = "url_access_logs"
     id = Column(Integer, primary_key=True, index=True)
 
-    url_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("urls.short_code"),
-                                        index=True)
+    url_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("urls.short_code"),
+        index=True
+    )
 
     ip_address: Mapped[str] = mapped_column(String)
     user_agent: Mapped[str] = mapped_column(String)
