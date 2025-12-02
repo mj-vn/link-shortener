@@ -1,7 +1,7 @@
 from app.models.base_class import mapped_column, Base
 from app.models.mixins import ModifiedMixin
 
-from sqlalchemy import Integer, ForeignKey, Sequence, BigInteger
+from sqlalchemy import Integer, Sequence, BigInteger
 from sqlalchemy.orm import Mapped, relationship
 
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from starlette import status
 
-from app.api.deps import get_url_service
+from app.api.dependencies import get_url_service
 from app.schemas import URLStatsResponse
 from app.services.url import URLService
 

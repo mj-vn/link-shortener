@@ -1,11 +1,8 @@
-from datetime import datetime
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
-from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
-from app.api.deps import get_db, get_url_service
+from app.api.dependencies import get_url_service
 from app.core.decorators import log_analytics
 from app.core.logging import logger
 from app.schemas import URLResponse, URLCreate
