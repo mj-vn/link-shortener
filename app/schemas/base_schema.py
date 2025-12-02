@@ -22,5 +22,6 @@ def convert_int_id_to_str_code(v: Any) -> str:
         return encode_base62(v)
     return str(v)
 
+
 ShortCodeField = Annotated[str, BeforeValidator(convert_int_id_to_str_code)]
 
