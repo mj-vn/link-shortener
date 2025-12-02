@@ -33,5 +33,5 @@ class ModifiedMixin(TimestampMixin):
 
     @classmethod
     def __declare_last__(cls):
-        event.listen(cls, 'before_update', cls.before_update, raw=True)
+        event.listen(cls, "before_update", cls.before_update, raw=True)
 

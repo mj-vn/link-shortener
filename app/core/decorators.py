@@ -12,8 +12,8 @@ repo = URLRepository()
 def log_analytics(func):
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
-        short_code = kwargs.get('short_code')
-        request: Request = kwargs.get('request')
+        short_code = kwargs.get("short_code")
+        request: Request = kwargs.get("request")
 
         log = logger.bind(
             short_code=short_code,
@@ -32,9 +32,13 @@ def log_analytics(func):
 
                 try:
                     url_id = decode_base62(short_code)
-                    asyncio.create_task(_log_background(url_id, request.client.host,
-                                                        request.headers.get(
-                                                            "user-agent")))
+                    asyncio.create_task(
+                        _log_background(
+                            url_id,
+                            request.client.host,
+                            request.headers.get("user-agent")
+                        )
+                    )
                 except ValueError:
                     log.warning("invalid_short_code_format", code=short_code)
 
