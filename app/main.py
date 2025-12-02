@@ -47,7 +47,9 @@ app.include_router(stats_router)
 
 
 # For k8s
-@app.get("/health", tags=["Health"])
+# (I had to use this not standard endpoint because
+# of assessment doc it has reserved for /{short_code})
+@app.get("/health/system_health", tags=["Health"])
 async def health_check():
     return {"status": "ok", "version": settings.VERSION}
 

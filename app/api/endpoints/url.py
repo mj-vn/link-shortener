@@ -16,11 +16,19 @@ url_manager_router = APIRouter()
     response_model=URLResponse,
     status_code=status.HTTP_201_CREATED,
 )
-async def shorten_url(url: URLCreate, url_service: URLService = Depends(get_url_service)):
+async def shorten_url(url_obj: URLCreate, url_service: URLService = Depends(get_url_service)):
     """
     Creates a shortened URL.
     """
-    return await url_service.shorten_url(str(url.url))
+    result = await url_service.shorten_url(str(url_obj.url))
+
+    logger.info(
+        "url_shortened.success",
+        original_url=str(url_obj.url),
+        short_code=result.short_code
+    )
+
+    return result
 
 
 @url_manager_router.get("/{short_code}")
@@ -33,7 +41,7 @@ async def redirect_to_original(
 
     original_url = await url_service.get_original_url(short_code)
     if not original_url:
-        logger.warning("redirect.not_found", code=short_code)
+        logger.warning("url_redirect.not_found", code=short_code)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="URL not found"
