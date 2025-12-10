@@ -22,13 +22,14 @@ async def shorten_url(url_obj: URLCreate, url_service: URLService = Depends(get_
     """
     Creates a shortened URL.
     """
-    result = await url_service.shorten_url(str(url_obj.url))
+    result = await url_service.shorten_url(str(url_obj.url), url_obj.ttl)
 
     logger.info(
         "url_shortened.success",
         original_url=str(url_obj.url),
         short_code=encode_base62(result.short_code),
-        db_short_code=result.short_code
+        db_short_code=result.short_code,
+        ttl=result.ttl
     )
 
     return result

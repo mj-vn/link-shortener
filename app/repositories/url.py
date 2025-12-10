@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import update
 
@@ -6,8 +8,8 @@ from app.models.urls import URLItem
 
 
 class URLRepository:
-    async def create(self, db: AsyncSession, original_url: str) -> URLItem:
-        db_obj = URLItem(original_url=original_url)
+    async def create(self, db: AsyncSession, original_url: str, ttl: datetime | None = None) -> URLItem:
+        db_obj = URLItem(original_url=original_url, ttl=ttl)
         db.add(db_obj)
         await db.flush()
         return db_obj

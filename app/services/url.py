@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import InvalidShortCodeException, URLNotFoundException
@@ -11,8 +13,8 @@ class URLService:
         self.repo = URLRepository()
         self.db = db
 
-    async def shorten_url(self, original_url: str) -> URLItem:
-        new_url = await self.repo.create(self.db, original_url)
+    async def shorten_url(self, original_url: str, ttl: datetime | None = None) -> URLItem:
+        new_url = await self.repo.create(self.db, original_url, ttl)
         await self.db.commit()
 
         await self.db.refresh(new_url)
@@ -29,6 +31,12 @@ class URLService:
 
         if not url_obj:
             raise URLNotFoundException(payload={"attempted_code": short_code})
+
+        if url_obj.ttl < datetime.utcnow():
+            raise URLNotFoundException(
+                message='Short Link has been expired',
+                payload={"attempted_code": short_code}
+            )
 
         await self.repo.increment_clicks(self.db, url_id)
         await self.db.commit()

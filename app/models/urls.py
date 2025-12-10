@@ -1,7 +1,9 @@
+from datetime import datetime
+
 from app.models.base_class import mapped_column, Base
 from app.models.mixins import ModifiedMixin
 
-from sqlalchemy import Integer, Sequence, BigInteger
+from sqlalchemy import Integer, Sequence, BigInteger, DateTime
 from sqlalchemy.orm import Mapped, relationship
 
 
@@ -19,5 +21,6 @@ class URLItem(ModifiedMixin, Base):
     )
     original_url: Mapped[str]
     clicked_count: Mapped[int] = mapped_column(Integer, default=0)
+    ttl: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
     logs = relationship("URLAccessLog", back_populates="url")
